@@ -1,0 +1,86 @@
+version: '3'
+services:
+  environment_4b:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: environment_4b
+    working_dir: '/src'
+    tty: true
+    volumes:
+      - ./src:/src
+      - ./src/api:/src/api
+      - ./src/data_lake:/src/data_lake
+      - ./src/data_lake/input:/src/data_lake/input
+      - ./src/data_lake/output:/src/data_lake/output
+      - ./src/notebooks:/src/notebooks
+      - ./src/modules:/src/modules
+      - ./src/debug:/src/debug
+      - ./src/docs:/src/docs
+    ports: 
+      - '8080:8080'
+    command: jupyter-lab --ip 0.0.0.0 --port=8080 --allow-root --no-browser --NotebookApp.token=''
+
+  # spark_env:
+  #   restart: always
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile_spark
+  #   container_name: spark_env
+  #   working_dir: '/src'
+  #   tty: true
+  #   volumes: 
+  #     - ./src:/src
+  #     - ./src/api:/src/api
+  #     - ./src/data_lake:/src/data_lake
+  #     - ./src/data_lake/input:/src/data_lake/input
+  #     - ./src/data_lake/output:/src/data_lake/output
+  #     - ./src/notebooks:/src/notebooks
+  #     - ./src/modules:/src/modules
+  #     - ./src/debug:/src/debug
+  #     - ./src/docs:/src/docs
+  #   ports: 
+  #     - '8888:8888'
+  #   command: jupyter-lab --ip 0.0.0.0 --port=8888 --allow-root --no-browser --NotebookApp.token=''
+
+  stremlit:
+    restart: always
+    build: 
+      context: .
+      dockerfile: Dockerfile_streamlit
+    container_name: stremlit
+    working_dir: '/src'
+    tty: true
+    volumes: 
+      - ./src:/src
+      - ./src/app:/src/app
+    ports: 
+      - '8501:8501'
+    command: streamlit run app/app.py
+  
+  # ngrok:
+  #   image: ngrok/ngrok:3
+  #   env_file: .env
+  #   environment:
+  #     - NGROK_AUTHTOKEN=${ngrok_key}
+  #   command: http host.docker.internal:8501
+  #   ports:
+  #     - '4040:4040'
+  #   expose:
+  #     - '4040'
+
+  fast_api:
+    restart: always
+    build: 
+      context: .
+      dockerfile: Dockerfile_fastapi
+    container_name: fast_api
+    working_dir: '/src'
+    volumes: 
+      - ./src:/src
+      - ./src/api:/src/api
+    tty: true
+    command: "uvicorn api.api:app --host 0.0.0.0 --port 8000 --reload"
+    ports: 
+      - 8000:8000
